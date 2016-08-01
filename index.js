@@ -28,8 +28,12 @@ module.exports = function(content, filename, context) {
     var contextKeys;
 
     sandbox.module = new Module(filename, module.parent);
+    sandbox.module.filename = filename;
+    sandbox.module.paths = Module._nodeModulePaths(path.dirname(filename));
     sandbox.exports = sandbox.module.exports = {'__42__': '__42__'};
-    sandbox.require = sandbox.module.require;
+    // See: https://github.com/nodejs/node/blob/master/lib/internal/module.js#L13-L40
+    sandbox.require = id => sandbox.module.require(id);
+    sandbox.require.resolve = req => Module._resolveFilename(req, sandbox.module);
 
     var args = [sandbox.exports, sandbox.require, sandbox.module, filename, dirname];
     context && (contextKeys = Object.keys(context).map(function(key) {
